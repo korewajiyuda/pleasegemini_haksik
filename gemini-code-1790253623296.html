@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>제미나이 학식 해결사</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f3f4f6; }
+        .tab-btn { transition: all 0.2s ease; border-bottom: 2px solid transparent; }
+        .tab-btn.active { color: #2563eb; border-bottom: 2px solid #2563eb; font-weight: 600; }
+        .day-btn { transition: all 0.2s ease; }
+        .day-btn.active { background-color: #3b82f6; color: white; border-color: #3b82f6; }
+        .card { transition: transform 0.2s; }
+        .card:active { transform: scale(0.98); }
+        .heart-btn { transition: color 0.2s; }
+        .heart-btn.liked { color: #ef4444; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Dice animation */
+        .shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 pb-20">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="px-4 py-3 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-gray-800 flex items-center">
+                    <i class="fa-solid fa-wand-magic-sparkles text-blue-500 mr-2"></i>
+                    제미나이 학식 해결사
+                </h1>
+                <p class="text-xs text-gray-500 mt-1">오늘 뭐 먹지? 요정들이 싹 다 요약해 옴!</p>
+            </div>
+            <!-- Random Pick Button -->
+            <button id="randomBtn" class="bg-blue-100 text-blue-600 p-2 rounded-full w-10 h-10 flex items-center justify-center shadow-sm active:bg-blue-200 transition">
+                <i class="fa-solid fa-dice text-lg"></i>
+            </button>
+        </div>
+        
+        <!-- School/Campus Tabs -->
+        <div class="flex overflow-x-auto hide-scrollbar border-b px-2">
+            <button class="tab-btn active px-4 py-2 text-sm text-gray-600 whitespace-nowrap" data-target="seoul">
+                경희대 (청운관)
+            </button>
+            <button class="tab-btn px-4 py-2 text-sm text-gray-600 whitespace-nowrap" data-target="global">
+                경희대 (푸른솔)
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="p-4">
+        <!-- Week Navigator -->
+        <div class="mb-4">
+            <div class="flex items-center justify-between mb-2 bg-white rounded-lg p-2 shadow-sm border border-gray-100">
+                <button id="prevWeekBtn" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 active:bg-gray-200"><i class="fa-solid fa-chevron-left"></i></button>
+                <h2 id="weekTitle" class="text-sm font-bold text-gray-700">9월 4주차 식단</h2>
+                <button id="nextWeekBtn" class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 active:bg-blue-200"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+
+            <!-- Days Selector -->
+            <div class="flex justify-between space-x-1">
+                <button class="day-btn flex-1 py-1 px-2 border rounded text-xs text-center text-gray-600 bg-white" data-day="1">월<br><span class="date-label text-[10px] opacity-70"></span></button>
+                <button class="day-btn flex-1 py-1 px-2 border rounded text-xs text-center text-gray-600 bg-white" data-day="2">화<br><span class="date-label text-[10px] opacity-70"></span></button>
+                <button class="day-btn flex-1 py-1 px-2 border rounded text-xs text-center text-gray-600 bg-white" data-day="3">수<br><span class="date-label text-[10px] opacity-70"></span></button>
+                <button class="day-btn flex-1 py-1 px-2 border rounded text-xs text-center text-gray-600 bg-white" data-day="4">목<br><span class="date-label text-[10px] opacity-70"></span></button>
+                <button class="day-btn flex-1 py-1 px-2 border rounded text-xs text-center text-gray-600 bg-white" data-day="5">금<br><span class="date-label text-[10px] opacity-70"></span></button>
+            </div>
+        </div>
+
+        <!-- Menu Container -->
+        <div id="menuContainer" class="space-y-3 pb-8">
+            <!-- Cards will be injected here by JS -->
+        </div>
+    </main>
+
+    <!-- Floating HUFS Button -->
+    <div class="fixed bottom-6 right-4 z-50">
+        <button id="hufsToggle" class="bg-indigo-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium flex items-center space-x-1 active:bg-indigo-700 transition">
+            <span>👀 옆학교 외대는?</span>
+        </button>
+    </div>
+
+    <!-- Random Modal -->
+    <div id="randomModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-xl p-6 m-4 max-w-sm w-full text-center shadow-2xl transform transition-all scale-95 opacity-0" id="randomModalContent">
+            <h3 class="text-lg font-bold text-gray-800 mb-2">🎲 제미나이의 픽!</h3>
+            <p class="text-sm text-gray-500 mb-4">오늘의 추천 메뉴는 바로...</p>
+            <div id="randomResult" class="text-xl font-black text-blue-600 mb-6 min-h-[60px] flex items-center justify-center">
+                <!-- Result goes here -->
+            </div>
+            <button id="closeModal" class="bg-gray-100 text-gray-700 w-full py-2 rounded-lg font-medium">닫기</button>
+        </div>
+    </div>
+
+    <script>
+        // Week Settings (Dates)
+        const weekSettings = {
+            'week4': {
+                title: '9월 4주차 식단 (9/21~9/25)',
+                dates: { 1: '9/21', 2: '9/22', 3: '9/23', 4: '9/24', 5: '9/25' }
+            },
+            'week5': {
+                title: '9월 5주차 식단 (9/28~10/2)',
+                dates: { 1: '9/28', 2: '9/29', 3: '9/30', 4: '10/1', 5: '10/2' }
+            }
+        };
+
+        // Two Weeks of Menu Data
+        const menuData = {
+            'seoul': { 
+                'week4': { // 9월 4주차
+                    1: [
+                        { type: '교직원 (8,000원)', name: '사골우거지탕', desc: '가자미카레튀김' },
+                        { type: '학생식당 든든(B)', name: '(뚝)순살간장찜닭 (5,500원)', desc: '두부구이, 애호박볶음' },
+                        { type: '학생식당 우아(A)', name: '냉쫄면세트 (5,800원)', desc: '떡갈비구이(5,500원)' }
+                    ],
+                    2: [
+                        { type: '교직원 (8,000원)', name: '들깨백닭갈비', desc: '우무묵냉국, 레드페퍼콜리플라워구이' },
+                        { type: '학생식당 든든(B)', name: '(뚝)햄치즈순두부찌개 (5,500원)', desc: '불닭소스무침만두' },
+                        { type: '학생식당 우아(A)', name: '치즈돈파게티 (6,800원)', desc: '돈파게티(5,800원)' }
+                    ],
+                    3: [
+                        { type: '교직원 (8,000원)', name: '돼지불백정식', desc: '매운콩나물국, 시금치유부무침' },
+                        { type: '학생식당 든든(B)', name: '(뚝)새마을st김치찌개 (5,500원)', desc: '비엔나데리야끼조림' },
+                        { type: '학생식당 우아(A)', name: '치폴레치킨마요덮밥 (5,800원)', desc: '모듬튀김치폴레마요덮밥(5,800원)' }
+                    ],
+                    4: [
+                        { type: '추석 연휴', name: '즐거운 한가위 보내세요! 🌕', desc: '식당 운영을 하지 않습니다.' }
+                    ],
+                    5: [
+                        { type: '추석 연휴', name: '즐거운 한가위 보내세요! 🌕', desc: '식당 운영을 하지 않습니다.' }
+                    ]
+                },
+                'week5': { // 9월 5주차 (새로 주신 PDF)
+                    1: [
+                        { type: '교직원 (8,000원)', name: '취나물밥정식', desc: '(뚝)청양된장찌개, 주꾸미떡볶음' },
+                        { type: '학생식당 든든(단품) (4,000원)', name: '들기름막국수', desc: '단무지' },
+                        { type: '학생식당 든든(B) (5,500원)', name: '새싹꼬막비빔밥', desc: '육회비빔밥(6,000원), 점보육회비빔밥(7,500원)' },
+                        { type: '학생식당 우아(A) (5,500원)', name: '새우볶음밥정식', desc: '미니달콤떡볶이, 김말이튀김' },
+                        { type: '학생식당 푸짐(C) (5,800원)', name: '(뚝)만두순두부찌개', desc: '순살생선까스&타르타르' },
+                        { type: '학생식당 석식 (5,500원)', name: '숯불제육덮밥', desc: '오징어너겟, 콩나물국' }
+                    ],
+                    2: [
+                        { type: '교직원 (8,000원)', name: '(뚝)돈등뼈해장국', desc: '온두부&볶음김치, 호박고추장찌개' },
+                        { type: '학생식당 든든(단품) (4,000원)', name: '들기름막국수', desc: '단무지' },
+                        { type: '학생식당 든든(B) (5,500원)', name: '두부취나물비빔밥', desc: '육회비빔밥(6,000원)' },
+                        { type: '학생식당 우아(A)', name: '토마토하이라이스&왕새우튀김 (5,500원)', desc: '치즈돈까스(6,000원)' },
+                        { type: '학생식당 푸짐(C) (6,000원)', name: '(뚝)삼계탕 (생협 보양식)', desc: '조합원할인 5,500원' },
+                        { type: '학생식당 석식 (5,800원)', name: '(뚝)육개장칼국수', desc: '고기완자전, 연두부찜' }
+                    ],
+                    3: [
+                        { type: '교직원 (9,000원)', name: '(철판)마늘간장닭불고기', desc: '생선까스유린기, 한식잡채' },
+                        { type: '학생식당 든든(단품) (4,000원)', name: '들기름막국수', desc: '단무지' },
+                        { type: '학생식당 든든(B) (5,500원)', name: '참치회덮밥', desc: '육회비빔밥(6,000원)' },
+                        { type: '학생식당 우아(A)', name: '달지않은로제스파게티&해시브라운 (5,500원)', desc: '함박스테이크(6,500원)' },
+                        { type: '학생식당 푸짐(C) (5,800원)', name: '(뚝)사골된장고기국밥', desc: '새우젓계란찜' },
+                        { type: '학생식당 석식 (5,500원)', name: '부대닭갈비덮밥', desc: '홍합무국, 감자오이샐러드' }
+                    ],
+                    4: [
+                        { type: '교직원 (8,000원)', name: '소고기순두부찌개&계란', desc: '수제꼬치어묵강정, 카레감자채볶음' },
+                        { type: '학생식당 든든(단품) (3,500원)', name: '반반전', desc: '돼지고기분짜(5,500원)' },
+                        { type: '학생식당 우아(A)', name: '단호박크림돈까스 (5,500원)', desc: '단호박크림치킨까스(5,500원)' },
+                        { type: '학생식당 푸짐(C) (5,800원)', name: '(뚝)순살닭도리탕', desc: '야끼만두튀김, 콩나물무침' },
+                        { type: '학생식당 석식 (5,800원)', name: '마크니카레&치킨가라아게', desc: '치킨스테이크(6,800원)' }
+                    ],
+                    5: [
+                        { type: '교직원 (8,000원)', name: '장각카레라이스', desc: '연두부카프레제, 느타리버섯장아찌' },
+                        { type: '학생식당 든든(B) (5,500원)', name: '곤드레비빔밥', desc: '가쓰오국, 소불고기' },
+                        { type: '학생식당 우아(A) (5,800원)', name: '라멘정식', desc: '돈코츠라멘, 후리가케주먹밥' },
+                        { type: '학생식당 푸짐(C) (5,800원)', name: '(뚝)콘치즈제육볶음', desc: '두부구이, 양배추쌈' },
+                        { type: '학생식당 석식 (5,500원)', name: '고깃집볶음밥', desc: '계란후라이, 꼬치어묵국' }
+                    ]
+                }
+            },
+            'global': { 
+                'week4': { // 9월 4주차
+                    1: [
+                        { type: '교직원 소담', name: '(뚝)삼겹순두부짜글이', desc: '고등어구이, 청포묵김무침' },
+                        { type: '중식 한소반', name: '돼지고기소금구이덮밥 (5,300원)', desc: '(뚝)대파육개장(5,500원)' },
+                        { type: '중식 SET (6,400원)', name: '돌기름막국수', desc: '파채치킨까스(6,800원)' }
+                    ],
+                    2: [
+                        { type: '교직원 소담', name: '(뚝)동촌샤브칼국수&겨자장', desc: '감자채전, 콩나물겨자냉채' },
+                        { type: '중식 한소반', name: '매운돼지고기덮밥 (5,500원)', desc: '(뚝)짬뽕순두부찌개(5,300원)' },
+                        { type: '중식 SET (6,600원)', name: '콘치즈토스트', desc: '매콤비빔만두(6,900원)' }
+                    ],
+                    3: [
+                        { type: '교직원 소담', name: '(뚝)낙.우.새볶음 쌈정식', desc: '들깨고사리나물' },
+                        { type: '중식 한소반', name: '짜장잡채밥 (5,500원)', desc: '(뚝)계림st닭볶음탕(5,500원)' },
+                        { type: '중식 SET (6,900원)', name: '치킨가라아게유린기', desc: '츄러스고구마맛탕(6,500원)' }
+                    ],
+                    4: [
+                        { type: '추석 연휴', name: '즐거운 한가위 보내세요! 🌕', desc: '식당 운영을 하지 않습니다.' }
+                    ],
+                    5: [
+                        { type: '추석 연휴', name: '즐거운 한가위 보내세요! 🌕', desc: '식당 운영을 하지 않습니다.' }
+                    ]
+                },
+                'week5': { // 9월 5주차 (새로 주신 PDF)
+                    1: [
+                        { type: '교직원 소담', name: '(뚝)삼겹순두부짜글이', desc: '고등어구이, 꼬시래기무침' },
+                        { type: '중식 한소반', name: '돼지고기소금구이덮밥 (5,300원)', desc: '(뚝)대파육개장 (5,500원)' },
+                        { type: '중식 SET', name: '돌기름막국수 (6,400원)', desc: '파채치킨까스 (6,800원)' }
+                    ],
+                    2: [
+                        { type: '교직원 소담', name: '소고기콩나물밥 정식', desc: '청국장찌개, 감자채전' },
+                        { type: '중식 한소반', name: '매운돼지고기덮밥 (5,500원)', desc: '(뚝)짬뽕순두부찌개 (5,300원)' },
+                        { type: '중식 SET', name: '콘치즈토스트 (6,600원)', desc: '매콤비빔만두 (6,900원)' }
+                    ],
+                    3: [
+                        { type: '교직원 소담', name: '고구마닭갈비 쌈정식', desc: '들깨고사리나물, 모듬야채튀김' },
+                        { type: '중식 한소반', name: '짜장잡채밥 (5,500원)', desc: '(뚝)계림st닭볶음탕 (5,500원)' },
+                        { type: '중식 SET', name: '치킨가라아게유린기 (6,900원)', desc: '츄러스고구마맛탕 (6,500원)' }
+                    ],
+                    4: [
+                        { type: '교직원 소담', name: '김치돈까스나베&우동사리', desc: '고구마맛탕, 양배추쌈' },
+                        { type: '중식 한소반', name: '소불고기덮밥 (5,500원)', desc: '(뚝)눈꽃치즈김치나베 (5,300원)' },
+                        { type: '중식 SET', name: '타코야끼 (6,300원)', desc: '미니우동 (6,600원)' }
+                    ],
+                    5: [
+                        { type: '교직원 소담', name: '돈사태김치찜 쌈정식', desc: '오이생채, 풋고추&편마늘' },
+                        { type: '중식 한소반', name: '치킨까스정식 (5,500원)', desc: '(뚝)크림김치볶음밥 (5,500원)' },
+                        { type: '중식 SET', name: '어니언생선까스 (6,500원)', desc: '미니우동 (6,600원)' }
+                    ]
+                }
+            },
+            'hufs': { 
+                'week4': { // 9월 4주차
+                    1: [
+                        { type: '조식 (4,000원)', name: '된장찌개', desc: '어묵볶음, 진미채무침' },
+                        { type: '중식 면 (3,000원)', name: '칼국수', desc: '490Kcal' },
+                        { type: '석식', name: '닭갈비덮밥', desc: '무어묵국, 콩나물무침' }
+                    ],
+                    2: [
+                        { type: '조식 (4,000원)', name: '소고기국밥', desc: '햄감자채볶음' },
+                        { type: '중식 면 (3,000원)', name: '알리오올리오', desc: '570Kcal' },
+                        { type: '석식', name: '갈비우거지탕', desc: '참나물무침' }
+                    ],
+                    3: [
+                        { type: '조식 (4,000원)', name: '돈육불고기', desc: '콩나물김치국' },
+                        { type: '중식(1) (4,000원)', name: '김치제육덮밥', desc: '계란국' },
+                        { type: '중식 면 (3,000원)', name: '잔치국수', desc: '460Kcal' },
+                        { type: '석식', name: '즐거운 명절 보내세요 🌕', desc: '금일 석식은 없습니다.' }
+                    ],
+                    4: [
+                        { type: '추석 연휴', name: '즐거운 한가위 보내세요! 🌕', desc: '식당 운영을 하지 않습니다.' }
+                    ],
+                    5: [
+                        { type: '추석 연휴', name: '즐거운 한가위 보내세요! 🌕', desc: '식당 운영을 하지 않습니다.' }
+                    ]
+                },
+                'week5': { // 9월 5주차 (아직 없음)
+                    1: [], 2: [], 3: [], 4: [], 5: []
+                }
+            }
+        };
+
+        // State variables
+        let currentSchool = 'seoul';
+        let currentWeek = 'week4';
+        
+        let currentDay = new Date().getDay();
+        if (currentDay === 0 || currentDay === 6) currentDay = 1; // 주말이면 월요일
+        // 데모 환경을 위해 현재 날짜 강제 고정 (9/24 목요일 기준)
+        const today = new Date();
+        if (today.getFullYear() === 2026 && today.getMonth() === 8 && today.getDate() === 24) {
+            currentDay = 4;
+        }
+
+        // DOM Elements
+        const tabs = document.querySelectorAll('.tab-btn');
+        const dayBtns = document.querySelectorAll('.day-btn');
+        const menuContainer = document.getElementById('menuContainer');
+        const hufsToggle = document.getElementById('hufsToggle');
+        
+        // Navigation Elements
+        const prevWeekBtn = document.getElementById('prevWeekBtn');
+        const nextWeekBtn = document.getElementById('nextWeekBtn');
+        const weekTitle = document.getElementById('weekTitle');
+        
+        // Random Modal Elements
+        const randomBtn = document.getElementById('randomBtn');
+        const randomModal = document.getElementById('randomModal');
+        const randomModalContent = document.getElementById('randomModalContent');
+        const closeModal = document.getElementById('closeModal');
+        const randomResult = document.getElementById('randomResult');
+
+        // Update Week UI (Title & Dates)
+        function updateWeekUI() {
+            weekTitle.innerText = weekSettings[currentWeek].title;
+            const dates = weekSettings[currentWeek].dates;
+            
+            dayBtns.forEach(btn => {
+                const dayNum = btn.dataset.day;
+                btn.querySelector('.date-label').innerText = dates[dayNum];
+            });
+
+            // 화살표 활성화/비활성화 처리
+            prevWeekBtn.style.opacity = currentWeek === 'week4' ? '0.3' : '1';
+            nextWeekBtn.style.opacity = currentWeek === 'week5' ? '0.3' : '1';
+        }
+
+        // Render Menu Cards
+        function renderMenu() {
+            let data = menuData[currentSchool][currentWeek][currentDay];
+            menuContainer.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                menuContainer.innerHTML = `
+                    <div class="card bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center mt-4">
+                        <i class="fa-solid fa-calendar-xmark text-3xl text-gray-300 mb-2"></i>
+                        <h3 class="text-gray-700 font-medium">식단 업데이트 대기 중</h3>
+                        <p class="text-sm text-gray-500 mt-1">이 주의 식단표가 아직 올라오지 않았습니다.</p>
+                    </div>`;
+                return;
+            }
+            
+            data.forEach((item, index) => {
+                let typeColor = 'text-gray-500';
+                let typeBg = 'bg-gray-100';
+                if(item.type.includes('학생') || item.type.includes('중식')) { typeColor = 'text-blue-600'; typeBg = 'bg-blue-50'; }
+                if(item.type.includes('교직') || item.type.includes('석식')) { typeColor = 'text-emerald-600'; typeBg = 'bg-emerald-50'; }
+                if(item.type.includes('추석') || item.type.includes('조식')) { typeColor = 'text-purple-600'; typeBg = 'bg-purple-50'; }
+
+                const isHoliday = item.type.includes('추석') || item.name.includes('명절');
+
+                const cardHtml = `
+                    <div class="card bg-white p-4 rounded-xl shadow-sm border border-gray-100 fade-in flex justify-between items-start" style="animation-delay: ${index * 0.05}s">
+                        <div class="flex-1">
+                            <span class="inline-block px-2 py-1 rounded text-[10px] font-bold ${typeBg} ${typeColor} mb-2">
+                                ${item.type}
+                            </span>
+                            <h3 class="text-base font-bold text-gray-800 leading-tight mb-1 ${isHoliday ? 'text-purple-600' : ''}">${item.name}</h3>
+                            <p class="text-xs text-gray-500 leading-snug">${item.desc}</p>
+                        </div>
+                        ${!isHoliday ? `
+                        <button class="heart-btn text-gray-300 p-2 text-lg active:scale-125" onclick="this.classList.toggle('liked')">
+                            <i class="fa-solid fa-heart"></i>
+                        </button>
+                        ` : ''}
+                    </div>
+                `;
+                menuContainer.innerHTML += cardHtml;
+            });
+        }
+
+        // Navigation Listeners
+        prevWeekBtn.addEventListener('click', () => {
+            if(currentWeek === 'week5') {
+                currentWeek = 'week4';
+                updateWeekUI();
+                renderMenu();
+            }
+        });
+
+        nextWeekBtn.addEventListener('click', () => {
+            if(currentWeek === 'week4') {
+                currentWeek = 'week5';
+                updateWeekUI();
+                renderMenu();
+            }
+        });
+
+        // Event Listeners for Tabs
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                tabs.forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                currentSchool = e.target.dataset.target;
+                
+                // Reset HUFS button state
+                hufsToggle.innerHTML = '<span>👀 옆학교 외대는?</span>';
+                hufsToggle.classList.remove('bg-rose-600');
+                hufsToggle.classList.add('bg-indigo-600');
+                
+                renderMenu();
+            });
+        });
+
+        // Event Listeners for Days
+        dayBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetBtn = e.target.closest('.day-btn');
+                dayBtns.forEach(b => b.classList.remove('active'));
+                targetBtn.classList.add('active');
+                currentDay = parseInt(targetBtn.dataset.day);
+                renderMenu();
+            });
+        });
+
+        // HUFS Toggle Listener
+        hufsToggle.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            currentSchool = 'hufs';
+            hufsToggle.innerHTML = '<span>🔙 경희대로 돌아가기</span>';
+            hufsToggle.classList.remove('bg-indigo-600');
+            hufsToggle.classList.add('bg-rose-600');
+            renderMenu();
+        });
+
+        // Random Logic
+        randomBtn.addEventListener('click', () => {
+            const currentData = menuData[currentSchool][currentWeek][currentDay] || [];
+            const validMeals = currentData.filter(item => !item.type.includes('추석') && !item.name.includes('명절'));
+            
+            randomBtn.classList.add('shake');
+            setTimeout(() => randomBtn.classList.remove('shake'), 500);
+            
+            randomModal.classList.remove('hidden');
+            setTimeout(() => {
+                randomModalContent.classList.remove('scale-95', 'opacity-0');
+                randomModalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+
+            if (validMeals.length === 0) {
+                randomResult.innerHTML = "해당 날짜에는 고를 수 있는 메뉴가 없어요! 😭";
+                return;
+            }
+
+            let counter = 0;
+            const shuffleInterval = setInterval(() => {
+                const randomItem = validMeals[Math.floor(Math.random() * validMeals.length)];
+                randomResult.innerHTML = randomItem.name;
+                counter++;
+                
+                if (counter > 15) {
+                    clearInterval(shuffleInterval);
+                    const finalItem = validMeals[Math.floor(Math.random() * validMeals.length)];
+                    randomResult.innerHTML = `🎉 ${finalItem.name} 🎉<br><span class="text-sm font-normal text-gray-500 mt-2 block">${finalItem.type}</span>`;
+                }
+            }, 50);
+        });
+
+        closeModal.addEventListener('click', () => {
+            randomModalContent.classList.remove('scale-100', 'opacity-100');
+            randomModalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => randomModal.classList.add('hidden'), 200);
+        });
+
+        // Initialize
+        updateWeekUI();
+        document.querySelector(`.day-btn[data-day="${currentDay}"]`).classList.add('active');
+        renderMenu();
+
+    </script>
+</body>
+</html>
